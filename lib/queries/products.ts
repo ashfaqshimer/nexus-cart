@@ -1,4 +1,4 @@
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { categories, products } from "@/lib/db/schema";
@@ -73,6 +73,37 @@ export async function getProductBySlug(
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export type CheckoutProduct = {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+};
+
+/**
+ * Fetch the authoritative name/price/stock for a set of product ids. Used at
+ * checkout to re-price the cart from the DB rather than trusting client-sent
+ * prices. Returns a Map keyed by product id; ids with no matching product are
+ * simply absent from the map.
+ */
+export async function getProductsByIds(
+  ids: number[],
+): Promise<Map<number, CheckoutProduct>> {
+  if (ids.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      price: products.price,
+      stock: products.stock,
+    })
+    .from(products)
+    .where(inArray(products.id, ids));
+
+  return new Map(rows.map((row) => [row.id, row]));
 }
 
 /**

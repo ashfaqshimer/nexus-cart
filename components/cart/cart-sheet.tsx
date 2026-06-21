@@ -74,12 +74,16 @@ export function CartSheet() {
                 <span>Subtotal</span>
                 <span className="tabular-nums">{formatPrice(subtotal)}</span>
               </div>
-              <Button size="lg" disabled className="w-full">
+              <Button
+                size="lg"
+                className="w-full"
+                disabled={count === 0}
+                nativeButton={false}
+                render={<Link href="/checkout" />}
+                onClick={() => setOpen(false)}
+              >
                 Checkout
               </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Checkout coming soon.
-              </p>
             </SheetFooter>
           </>
         ) : (
@@ -88,6 +92,7 @@ export function CartSheet() {
             <p className="text-sm text-muted-foreground">Your cart is empty.</p>
             <Button
               variant="outline"
+              nativeButton={false}
               render={<Link href="/" />}
               onClick={() => setOpen(false)}
             >
