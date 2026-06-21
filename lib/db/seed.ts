@@ -7,19 +7,24 @@ import { categories, products } from "./schema";
 
 const categorySeed = [
   {
-    name: "Electronics",
-    slug: "electronics",
-    description: "Gadgets, audio, and everyday tech.",
+    name: "Balloons",
+    slug: "balloons",
+    description: "Latex, foil, and balloon garlands for every celebration.",
   },
   {
-    name: "Apparel",
-    slug: "apparel",
-    description: "Clothing and accessories for every day.",
+    name: "Banners & Backdrops",
+    slug: "banners-backdrops",
+    description: "Banners, bunting, and photo backdrops.",
   },
   {
-    name: "Home & Kitchen",
-    slug: "home-kitchen",
-    description: "Essentials to outfit your space.",
+    name: "Tableware",
+    slug: "tableware",
+    description: "Plates, cups, napkins, and table covers.",
+  },
+  {
+    name: "Party Favors & Confetti",
+    slug: "favors-confetti",
+    description: "Favors, confetti, and finishing touches.",
   },
 ];
 
@@ -34,84 +39,85 @@ type ProductSeed = {
 
 const productSeed: ProductSeed[] = [
   {
-    name: "Aurora Wireless Headphones",
-    slug: "aurora-wireless-headphones",
-    description: "Over-ear headphones with active noise cancellation.",
-    price: 19999,
-    stock: 24,
-    categorySlug: "electronics",
-  },
-  {
-    name: "Pulse Smartwatch",
-    slug: "pulse-smartwatch",
-    description: "Fitness and notifications on your wrist.",
-    price: 14999,
-    stock: 12,
-    categorySlug: "electronics",
-  },
-  {
-    name: "Nimbus Bluetooth Speaker",
-    slug: "nimbus-bluetooth-speaker",
-    description: "Portable speaker with rich, room-filling sound.",
-    price: 7999,
-    stock: 0,
-    categorySlug: "electronics",
-  },
-  {
-    name: "Vertex Mechanical Keyboard",
-    slug: "vertex-mechanical-keyboard",
-    description: "Hot-swappable switches and a compact layout.",
-    price: 11999,
-    stock: 30,
-    categorySlug: "electronics",
-  },
-  {
-    name: "Drift Cotton Tee",
-    slug: "drift-cotton-tee",
-    description: "Soft, breathable everyday t-shirt.",
-    price: 2499,
-    stock: 80,
-    categorySlug: "apparel",
-  },
-  {
-    name: "Summit Hooded Jacket",
-    slug: "summit-hooded-jacket",
-    description: "Water-resistant shell for changeable weather.",
-    price: 8999,
-    stock: 18,
-    categorySlug: "apparel",
-  },
-  {
-    name: "Trailhead Canvas Backpack",
-    slug: "trailhead-canvas-backpack",
-    description: "Durable daypack with laptop sleeve.",
-    price: 5999,
-    stock: 40,
-    categorySlug: "apparel",
-  },
-  {
-    name: "Ember Ceramic Mug Set",
-    slug: "ember-ceramic-mug-set",
-    description: "Set of four hand-glazed stoneware mugs.",
+    name: "Rose Gold Balloon Garland Kit",
+    slug: "rose-gold-balloon-garland-kit",
+    description:
+      "120-piece DIY arch kit in blush, rose gold, and ivory with tape strip.",
     price: 3499,
-    stock: 50,
-    categorySlug: "home-kitchen",
+    stock: 35,
+    categorySlug: "balloons",
   },
   {
-    name: "Forge Cast Iron Skillet",
-    slug: "forge-cast-iron-skillet",
-    description: "Pre-seasoned 12-inch skillet for any stovetop.",
-    price: 4599,
-    stock: 22,
-    categorySlug: "home-kitchen",
+    name: "Metallic Foil Number Balloons (0–9)",
+    slug: "metallic-foil-number-balloons",
+    description: "40-inch self-sealing foil numbers for milestone birthdays.",
+    price: 1299,
+    stock: 60,
+    categorySlug: "balloons",
   },
   {
-    name: "Lumen LED Desk Lamp",
-    slug: "lumen-led-desk-lamp",
-    description: "Adjustable lamp with warm-to-cool dimming.",
-    price: 3999,
+    name: "Helium Latex Balloons (50-pack)",
+    slug: "helium-latex-balloons-50-pack",
+    description: "Assorted-color 12-inch latex balloons for helium or air.",
+    price: 999,
     stock: 0,
-    categorySlug: "home-kitchen",
+    categorySlug: "balloons",
+  },
+  {
+    name: "Happy Birthday Foil Banner",
+    slug: "happy-birthday-foil-banner",
+    description: "Shiny gold cursive lettering that strings up in seconds.",
+    price: 899,
+    stock: 80,
+    categorySlug: "banners-backdrops",
+  },
+  {
+    name: "Shimmer Fringe Photo Backdrop",
+    slug: "shimmer-fringe-photo-backdrop",
+    description: "6ft metallic tinsel curtain for photo booths and walls.",
+    price: 1999,
+    stock: 28,
+    categorySlug: "banners-backdrops",
+  },
+  {
+    name: "Floral Paper Bunting",
+    slug: "floral-paper-bunting",
+    description: "15ft pastel floral garland for showers and brunches.",
+    price: 799,
+    stock: 44,
+    categorySlug: "banners-backdrops",
+  },
+  {
+    name: "Gold Dot Paper Plate Set (24)",
+    slug: "gold-dot-paper-plate-set",
+    description: "Sturdy coated party plates with metallic gold polka dots.",
+    price: 1499,
+    stock: 50,
+    categorySlug: "tableware",
+  },
+  {
+    name: "Striped Party Cups & Napkins Bundle",
+    slug: "striped-party-cups-napkins-bundle",
+    description: "Coordinated 9oz cups and luncheon napkins, serves 16.",
+    price: 1199,
+    stock: 38,
+    categorySlug: "tableware",
+  },
+  {
+    name: "Biodegradable Confetti Poppers (6)",
+    slug: "biodegradable-confetti-poppers",
+    description: "Eco-friendly push poppers bursting with tissue confetti.",
+    price: 1699,
+    stock: 0,
+    categorySlug: "favors-confetti",
+  },
+  {
+    name: "Treat Favor Boxes with Ribbon (12)",
+    slug: "treat-favor-boxes-with-ribbon",
+    description: "Kraft favor boxes with satin ribbon and thank-you tags.",
+    price: 1399,
+    stock: 65,
+    categorySlug: "favors-confetti",
   },
 ];
 
@@ -120,6 +126,12 @@ function imageFor(slug: string): string[] {
 }
 
 async function seed() {
+  // Clear existing rows so re-seeding yields a clean catalog (delete products
+  // first; products.categoryId is "on delete set null").
+  console.log("Clearing existing catalog...");
+  await db.delete(products);
+  await db.delete(categories);
+
   console.log("Seeding categories...");
   await db
     .insert(categories)

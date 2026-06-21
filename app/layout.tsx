@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "NexusCart — Modern e-commerce",
+    default: "NexusCart — Party decorations & supplies",
     template: "%s | NexusCart",
   },
   description:
-    "Browse a curated catalog of electronics, apparel, and home goods at NexusCart.",
+    "Shop balloons, banners, tableware, and confetti — everything you need to decorate any celebration, at NexusCart.",
 };
 
 export default function RootLayout({

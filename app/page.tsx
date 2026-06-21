@@ -10,17 +10,17 @@ export default async function Home() {
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
       <section className="py-12 sm:py-16">
         <h1 className="font-heading max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
-          Everything you need, in one cart.
+          Everything for the perfect party, in one cart.
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-          Discover a curated selection of electronics, apparel, and home goods —
-          shipped fast and priced fair.
+          Balloons, banners, tableware, and confetti — curated decorations for
+          birthdays, showers, and every celebration, shipped fast.
         </p>
       </section>
 
       <section className="pb-16">
         <h2 className="font-heading mb-6 text-xl font-semibold tracking-tight">
-          Latest products
+          New arrivals
         </h2>
 
         {products.length === 0 ? (
