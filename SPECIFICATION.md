@@ -12,6 +12,7 @@ NexusCart is a generic, highly customizable, SEO-optimized e-commerce boilerplat
 - **ORM:** Drizzle ORM (optimized for performance and type safety)
 - **Authentication:** Better Auth (using the Drizzle database adapter)
 - **State Management:** React Context / Zustand (for client-side cart)
+- **Payments:** Stripe Checkout (hosted, test mode) — server-side session creation + webhook
 
 ---
 
@@ -28,6 +29,13 @@ NexusCart is a generic, highly customizable, SEO-optimized e-commerce boilerplat
 
 - **products:** `id` (PK), `name`, `slug` (indexed for SEO), `description`, `price` (Int/Numeric for cents), `images` (text array), `stock`, `categoryId` (FK -> categories), `createdAt`
 - **categories:** `id` (PK), `name`, `slug` (indexed), `description`
+
+### Order Tables
+
+Guest checkout — orders are keyed to an email, not a `userId` (auth is not yet built).
+
+- **orders:** `id` (PK), `stripeSessionId` (unique — links a Stripe Checkout Session to its order), `email`, shipping fields (`shippingName`, `shippingLine1`, `shippingLine2`, `shippingCity`, `shippingState`, `shippingPostalCode`, `shippingCountry`), `amountTotal` (Int cents, filled on payment), `currency`, `status` (`pending` | `paid` | `failed`), `createdAt`
+- **order_items:** `id` (PK), `orderId` (FK -> orders, cascade), `productId` (FK -> products, set null), `name` (snapshot), `quantity`, `unitPrice` (Int cents snapshot at purchase)
 
 ---
 
@@ -51,9 +59,18 @@ NexusCart is a generic, highly customizable, SEO-optimized e-commerce boilerplat
 - Sliding cart drawer (shadcn sheet) accessible from any page.
 - Actions: Add to cart, adjust quantity, remove item, display subtotal.
 
+### Phase 4: Checkout & Orders (Built)
+
+- Guest checkout at `/checkout`: a form collects name + email; the cart's `{ id, quantity }` is sent to a Server Action that **re-prices from the DB** (client prices are never trusted) and validates stock.
+- The action creates a Stripe Checkout Session (hosted page, test mode), persists a `pending` order + items, then redirects to Stripe. Shipping address is collected by Stripe.
+- A webhook (`/api/stripe/webhook`) verifies the signature against the raw body and flips the order to `paid` (backfilling amount + shipping), idempotently.
+- `/checkout/success` shows the confirmation, tolerates the webhook race (pending → "processing"), and clears the cart only after a confirmed order.
+
 ---
 
 ## 5. Future Extension Points (Non-MVP)
 
-- **Checkout/Payments:** The cart layout must pass data cleanly to a future `/checkout` route where Stripe/Paypal will be integrated.
-- **Order Management:** Database tables for `orders` and `order_items` are deferred to post-MVP but will link `userId` to `products`.
+- **Authentication:** Phase 1 Better Auth (email/password + Drizzle adapter) and its tables are not yet built. Once added, orders should gain a nullable `userId` to associate guest orders with accounts.
+- **Category pages:** `/categories/[slug]` filtering (Phase 2) is not yet built.
+- **Inventory:** Stock is validated at checkout but not decremented on payment; reservation/decrement is deferred.
+- **Order history / admin:** No customer order-history or admin view reads the order tables yet.
