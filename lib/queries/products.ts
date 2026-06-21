@@ -3,6 +3,10 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { categories, products } from "@/lib/db/schema";
 
+// Re-exported from a DB-free module so client components can import it without
+// pulling the server-only db client into the browser bundle.
+export { formatPrice } from "@/lib/format";
+
 export type ProductListItem = {
   id: number;
   name: string;
@@ -95,14 +99,4 @@ export async function getRelatedProducts(
     .where(and(eq(products.categoryId, categoryId), ne(products.id, excludeId)))
     .orderBy(desc(products.createdAt))
     .limit(limit);
-}
-
-/**
- * Format a price stored in integer cents as a localized currency string.
- */
-export function formatPrice(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
 }

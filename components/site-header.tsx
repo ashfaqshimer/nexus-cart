@@ -1,7 +1,7 @@
-import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { CartSheet } from "@/components/cart/cart-sheet";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
@@ -21,9 +21,7 @@ export function SiteHeader() {
           >
             Products
           </Link>
-          <Button variant="ghost" size="icon" aria-label="Open cart" disabled>
-            <ShoppingCart />
-          </Button>
+          <CartSheet />
         </nav>
       </div>
     </header>

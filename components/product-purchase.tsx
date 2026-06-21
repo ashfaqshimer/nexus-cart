@@ -1,13 +1,22 @@
+"use client";
+
+import { useState } from "react";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useCartStore, type CartItem } from "@/lib/cart/store";
+
+type ProductPurchaseProps = Omit<CartItem, "quantity">;
 
 /**
- * Purchase controls for the product detail page. The cart is a later phase, so
- * the quantity stepper and add-to-cart button are non-functional placeholders
- * ready to be wired up once the cart exists.
+ * Purchase controls for the product detail page: a quantity stepper and an
+ * add-to-cart button wired to the client cart store.
  */
-export function ProductPurchase({ stock }: { stock: number }) {
+export function ProductPurchase({ stock, ...product }: ProductPurchaseProps) {
+  const addItem = useCartStore((s) => s.addItem);
+  const openCart = useCartStore((s) => s.openCart);
+  const [quantity, setQuantity] = useState(1);
+
   const outOfStock = stock <= 0;
 
   if (outOfStock) {
@@ -28,6 +37,11 @@ export function ProductPurchase({ stock }: { stock: number }) {
     );
   }
 
+  const handleAddToCart = () => {
+    addItem({ ...product, stock }, quantity);
+    openCart();
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
@@ -35,29 +49,35 @@ export function ProductPurchase({ stock }: { stock: number }) {
           <Button
             size="icon"
             variant="ghost"
-            disabled
             aria-label="Decrease quantity"
+            disabled={quantity <= 1}
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
           >
             <Minus />
           </Button>
-          <span className="w-8 text-center text-sm tabular-nums">1</span>
+          <span className="w-8 text-center text-sm tabular-nums">
+            {quantity}
+          </span>
           <Button
             size="icon"
             variant="ghost"
-            disabled
             aria-label="Increase quantity"
+            disabled={quantity >= stock}
+            onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
           >
             <Plus />
           </Button>
         </div>
-        <Button size="lg" disabled className="flex-1 sm:flex-none">
+        <Button
+          size="lg"
+          className="flex-1 sm:flex-none"
+          onClick={handleAddToCart}
+        >
           <ShoppingCart />
           Add to cart
         </Button>
       </div>
-      <p className="text-sm text-muted-foreground">
-        {stock} in stock · checkout coming soon
-      </p>
+      <p className="text-sm text-muted-foreground">{stock} in stock</p>
     </div>
   );
 }
