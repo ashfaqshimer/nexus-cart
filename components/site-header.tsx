@@ -21,12 +21,7 @@ export function SiteHeader() {
           >
             Products
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Open cart"
-            disabled
-          >
+          <Button variant="ghost" size="icon" aria-label="Open cart" disabled>
             <ShoppingCart />
           </Button>
         </nav>
