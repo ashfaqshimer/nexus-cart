@@ -49,9 +49,9 @@ Guest checkout — orders are keyed to an email, not a `userId` (auth is not yet
 
 ### Phase 2: Product Catalog & SEO
 
-- Landing page featuring a product grid with server-side rendering (SSR) for maximum SEO benefit.
+- Landing page featuring a product grid with server-side rendering (SSR) for maximum SEO benefit, plus a "shop by category" section.
 - Dynamic Product Detail Page (`/products/[slug]`) utilizing Next.js Metadata API for OpenGraph and SEO tags.
-- Simple Category filtering pages (`/categories/[slug]`).
+- Category browsing: a `/categories` index listing every category (with product counts) and `/categories/[slug]` filtering pages with a link-based sort control (newest / price asc / price desc) and per-category Metadata API tags. Categories are surfaced in the site header nav.
 
 ### Phase 3: Shopping Cart
 
@@ -71,6 +71,5 @@ Guest checkout — orders are keyed to an email, not a `userId` (auth is not yet
 ## 5. Future Extension Points (Non-MVP)
 
 - **Authentication:** Phase 1 Better Auth (email/password + Drizzle adapter) and its tables are not yet built. Once added, orders should gain a nullable `userId` to associate guest orders with accounts.
-- **Category pages:** `/categories/[slug]` filtering (Phase 2) is not yet built.
 - **Inventory:** Stock is validated at checkout but not decremented on payment; reservation/decrement is deferred.
 - **Order history / admin:** No customer order-history or admin view reads the order tables yet.

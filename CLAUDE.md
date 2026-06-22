@@ -33,7 +33,7 @@ Checkout needs Stripe **test-mode** keys: `STRIPE_SECRET_KEY` and `APP_URL` (bas
 
 ## Architecture
 
-This is the **NexusCart** e-commerce boilerplate. `SPECIFICATION.md` is the source of truth for intended scope. Built so far: DB foundation, SSR homepage product grid, product detail pages (Phase 2), the client-side cart (Phase 3), and Stripe guest checkout + order persistence (Phase 4). Still unbuilt: Better Auth (Phase 1) and category pages (Phase 2).
+This is the **NexusCart** e-commerce boilerplate. `SPECIFICATION.md` is the source of truth for intended scope. Built so far: DB foundation, SSR homepage product grid, product detail pages and category browsing (`/categories` index + `/categories/[slug]` with sorting) (Phase 2), the client-side cart (Phase 3), and Stripe guest checkout + order persistence (Phase 4). Still unbuilt: Better Auth (Phase 1).
 
 **Data layer.** `lib/db/index.ts` exports a single `db` Drizzle client built on `postgres-js`. The underlying `postgres` client is memoized on `globalThis` outside production to survive hot reloads without exhausting connections — preserve this pattern. Schema lives in `lib/db/schema.ts`; generated migrations and snapshots live in `drizzle/`.
 

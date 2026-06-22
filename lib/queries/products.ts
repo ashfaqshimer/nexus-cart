@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { categories, products } from "@/lib/db/schema";
@@ -30,22 +30,68 @@ export type ProductDetail = {
 };
 
 /**
+ * How a product listing can be ordered. Drives the category-page sort control.
+ */
+export type ProductSort = "newest" | "price-asc" | "price-desc";
+
+/**
+ * Coerce an untrusted query-string value (e.g. `?sort=`) into a valid
+ * ProductSort, falling back to "newest".
+ */
+export function parseProductSort(value: string | undefined): ProductSort {
+  return value === "price-asc" || value === "price-desc" || value === "newest"
+    ? value
+    : "newest";
+}
+
+function orderByForSort(sort: ProductSort) {
+  switch (sort) {
+    case "price-asc":
+      return asc(products.price);
+    case "price-desc":
+      return desc(products.price);
+    default:
+      return desc(products.createdAt);
+  }
+}
+
+// Shared column selection for the product-list shape (ProductListItem). Joined
+// against `categories` so it must be used with a leftJoin on the category.
+const productListColumns = {
+  id: products.id,
+  name: products.name,
+  slug: products.slug,
+  price: products.price,
+  images: products.images,
+  stock: products.stock,
+  categoryName: categories.name,
+};
+
+/**
  * Fetch products for the catalog grid, newest first, with their category name.
  */
 export async function getProducts(): Promise<ProductListItem[]> {
   return db
-    .select({
-      id: products.id,
-      name: products.name,
-      slug: products.slug,
-      price: products.price,
-      images: products.images,
-      stock: products.stock,
-      categoryName: categories.name,
-    })
+    .select(productListColumns)
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
     .orderBy(desc(products.createdAt));
+}
+
+/**
+ * Fetch the products in a category, ordered by the given sort. Used by the
+ * /categories/[slug] page.
+ */
+export async function getProductsByCategory(
+  categoryId: number,
+  sort: ProductSort = "newest",
+): Promise<ProductListItem[]> {
+  return db
+    .select(productListColumns)
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(eq(products.categoryId, categoryId))
+    .orderBy(orderByForSort(sort));
 }
 
 /**
@@ -116,15 +162,7 @@ export async function getRelatedProducts(
   limit = 4,
 ): Promise<ProductListItem[]> {
   return db
-    .select({
-      id: products.id,
-      name: products.name,
-      slug: products.slug,
-      price: products.price,
-      images: products.images,
-      stock: products.stock,
-      categoryName: categories.name,
-    })
+    .select(productListColumns)
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
     .where(and(eq(products.categoryId, categoryId), ne(products.id, excludeId)))
