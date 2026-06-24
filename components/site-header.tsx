@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CartSheet } from "@/components/cart/cart-sheet";
+import { SearchBox } from "@/components/search/search-box";
 import { buttonVariants } from "@/components/ui/button";
 import { getCategories } from "@/lib/queries/categories";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,8 @@ export async function SiteHeader() {
             ))}
           </nav>
         </div>
+
+        <SearchBox className="hidden flex-1 md:block md:max-w-xs" />
 
         <nav className="flex items-center gap-1">
           <Link

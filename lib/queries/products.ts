@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, ne, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { categories, products } from "@/lib/db/schema";
@@ -92,6 +92,42 @@ export async function getProductsByCategory(
     .leftJoin(categories, eq(products.categoryId, categories.id))
     .where(eq(products.categoryId, categoryId))
     .orderBy(orderByForSort(sort));
+}
+
+/**
+ * Escape the characters that are special in a SQL LIKE/ILIKE pattern (`\`, `%`,
+ * `_`) so user input is matched literally rather than as wildcards.
+ */
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+/**
+ * Full-text-ish product search: case-insensitive substring match against the
+ * product name and description, ordered by the given sort. Used by the header
+ * typeahead (with a small `limit`) and the /search results page. Returns an
+ * empty array for a blank query rather than matching every product.
+ */
+export async function searchProducts(
+  query: string,
+  sort: ProductSort = "newest",
+  limit?: number,
+): Promise<ProductListItem[]> {
+  const trimmed = query.trim();
+  if (trimmed === "") return [];
+
+  const pattern = `%${escapeLike(trimmed)}%`;
+
+  const builder = db
+    .select(productListColumns)
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      or(ilike(products.name, pattern), ilike(products.description, pattern)),
+    )
+    .orderBy(orderByForSort(sort));
+
+  return limit === undefined ? builder : builder.limit(limit);
 }
 
 /**

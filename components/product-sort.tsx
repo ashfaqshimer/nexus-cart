@@ -19,18 +19,27 @@ const SORT_OPTIONS: { value: ProductSortValue; label: string }[] = [
 export function ProductSort({
   basePath,
   active,
+  params,
 }: {
   basePath: string;
   active: ProductSortValue;
+  /**
+   * Extra query params to preserve on every sort link (e.g. the `q` of a search
+   * page). "newest" still omits `sort` to keep that URL canonical, but these
+   * params are always carried through.
+   */
+  params?: Record<string, string>;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-muted-foreground">Sort</span>
       {SORT_OPTIONS.map((option) => {
-        const href =
-          option.value === "newest"
-            ? basePath
-            : `${basePath}?sort=${option.value}`;
+        const search = new URLSearchParams(params);
+        if (option.value !== "newest") {
+          search.set("sort", option.value);
+        }
+        const queryString = search.toString();
+        const href = queryString ? `${basePath}?${queryString}` : basePath;
         return (
           <Link
             key={option.value}
