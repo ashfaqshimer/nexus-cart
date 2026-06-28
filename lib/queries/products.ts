@@ -2,6 +2,8 @@ import { and, asc, desc, eq, ilike, inArray, ne, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { categories, products } from "@/lib/db/schema";
+import { isUniqueViolation, slugWithSuffix } from "@/lib/slug";
+import type { ProductInput } from "@/lib/validation/admin";
 
 // Re-exported from a DB-free module so client components can import it without
 // pulling the server-only db client into the browser bundle.
@@ -204,4 +206,99 @@ export async function getRelatedProducts(
     .where(and(eq(products.categoryId, categoryId), ne(products.id, excludeId)))
     .orderBy(desc(products.createdAt))
     .limit(limit);
+}
+
+// ---------------------------------------------------------------------------
+// Admin CRUD
+// ---------------------------------------------------------------------------
+
+/** A full product row, as needed to prefill the admin edit form. */
+export type AdminProduct = typeof products.$inferSelect;
+
+// Cap on slug-collision retries before giving up (see slugWithSuffix).
+const MAX_SLUG_ATTEMPTS = 50;
+
+/**
+ * All products for the admin list table, newest first, with category names.
+ * Distinct from `getProducts` (the public grid) so admin-only filtering can
+ * diverge later without touching the storefront.
+ */
+export async function getAllProductsForAdmin(): Promise<ProductListItem[]> {
+  return db
+    .select(productListColumns)
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .orderBy(desc(products.createdAt));
+}
+
+/**
+ * Fetch a single product by id (all columns) for the edit form. Returns null
+ * when no product matches.
+ */
+export async function getProductById(id: number): Promise<AdminProduct | null> {
+  const rows = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+/**
+ * Insert a product. `input.slug` is the already-normalized base slug; on a
+ * unique-slug collision we retry with `-2`, `-3`, … until one sticks.
+ */
+export async function createProduct(
+  input: ProductInput,
+): Promise<AdminProduct> {
+  const { slug, ...rest } = input;
+
+  for (let attempt = 1; attempt <= MAX_SLUG_ATTEMPTS; attempt++) {
+    try {
+      const [row] = await db
+        .insert(products)
+        .values({ ...rest, slug: slugWithSuffix(slug, attempt) })
+        .returning();
+      return row;
+    } catch (error) {
+      if (isUniqueViolation(error)) continue;
+      throw error;
+    }
+  }
+
+  throw new Error(`Could not generate a unique slug for "${input.name}"`);
+}
+
+/**
+ * Update a product by id, using the same slug-collision retry as create.
+ * Re-using the row's own current slug is fine (no self-collision). Returns null
+ * when no product matches the id.
+ */
+export async function updateProduct(
+  id: number,
+  input: ProductInput,
+): Promise<AdminProduct | null> {
+  const { slug, ...rest } = input;
+
+  for (let attempt = 1; attempt <= MAX_SLUG_ATTEMPTS; attempt++) {
+    try {
+      const [row] = await db
+        .update(products)
+        .set({ ...rest, slug: slugWithSuffix(slug, attempt) })
+        .where(eq(products.id, id))
+        .returning();
+      return row ?? null;
+    } catch (error) {
+      if (isUniqueViolation(error)) continue;
+      throw error;
+    }
+  }
+
+  throw new Error(`Could not generate a unique slug for "${input.name}"`);
+}
+
+/** Delete a product by id. */
+export async function deleteProduct(id: number): Promise<void> {
+  await db.delete(products).where(eq(products.id, id));
 }

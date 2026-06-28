@@ -124,28 +124,38 @@ server-side `requireAdmin()` gate. (Does not yet wire any UI.)
       `requireAdmin()` in the layout is the real boundary. `pnpm typecheck`, `pnpm lint`,
       and `pnpm test` (23 tests) all clean.
 
-## Phase 3 — Product CRUD ⬜ TODO
+## Phase 3 — Product CRUD ✅ DONE (this session)
 
-- [ ] **`lib/slug.ts`** — `slugify(name)` (lowercase, strip non-alphanumerics, collapse
-      dashes) + a uniqueness helper (catch unique-violation, append `-2`, `-3`, …).
-      Add a vitest test mirroring `lib/queries/products.test.ts` style.
-- [ ] **`lib/validation/admin.ts`** — zod schemas: `productInput` (name; optional slug→
-      derived from name; description; **price parsed to integer cents**; stock int ≥0;
-      nullable `categoryId`; `images` string[]) and `categoryInput`.
-- [ ] **`lib/queries/products.ts`** — add `createProduct(input)`, `updateProduct(id, input)`,
-      `deleteProduct(id)`, `getAllProductsForAdmin()`, `getProductById(id)`. Reuse the
-      slug helper; keep money as integer cents.
-- [ ] **`app/admin/products/actions.ts`** — `"use server"`; `createProductAction`/
-      `updateProductAction`/`deleteProductAction`: `await requireAdmin()` →
-      zod-validate `formData` (images via `formData.getAll("images")`) → mutate →
-      `revalidatePath("/admin/products")` + public `/`, `/products/[slug]` (type `'page'`),
-      `/categories/[slug]` → `redirect("/admin/products")`. Return `{ error?, fieldErrors? }`.
-- [ ] **`app/admin/products/page.tsx`** — list in shadcn `table` with edit/delete actions.
-- [ ] **`app/admin/products/new/page.tsx`** + **`app/admin/products/[id]/edit/page.tsx`**.
-- [ ] **`components/admin/product-form.tsx`** — `"use client"`, `useActionState`; category
-      `select`, `textarea` description, price/stock inputs, and the image manager
-      (`components/admin/image-input.tsx` from Phase 5; until then a plain URL field).
-- [ ] Verify CRUD + that public storefront reflects changes (revalidate).
+- [x] **`lib/slug.ts`** — `slugify(name)` (NFKD + strip diacritics, lowercase, non-alnum→
+      dash, collapse, trim) + `slugWithSuffix(base, attempt)` and `isUniqueViolation(err)`
+      (Postgres 23505) for the catch-and-retry loop. Pure functions; vitest in
+      `lib/slug.test.ts` (10 cases).
+- [x] **`lib/validation/admin.ts`** — zod `productInput` (name; optional slug→derived from
+      name via `slugify`; description→null when blank; **price dollars→integer cents**;
+      stock int ≥0; nullable `categoryId` with ""/"none"→null; `images` string[] trimmed).
+      Exports inferred `ProductInput`. (`categoryInput` deferred to Phase 4.)
+- [x] **`lib/queries/products.ts`** — added `getAllProductsForAdmin()`, `getProductById(id)`
+      (returns full row as `AdminProduct`), `createProduct`, `updateProduct`, `deleteProduct`.
+      Slug uniqueness via a retry loop on `isUniqueViolation` (cap `MAX_SLUG_ATTEMPTS`).
+- [x] **`app/admin/products/actions.ts`** — `"use server"`; `createProductAction`/
+      `updateProductAction(id,…)`/`deleteProductAction(id)`: `await requireAdmin()` first →
+      zod-validate `formData` (images via `getAll`) → mutate → `revalidateStorefront()`
+      (`/admin/products`, `/`, `/products/[slug]` + `/categories/[slug]` as `'page'`,
+      `/categories`) → `redirect("/admin/products")` (outside try/catch). Returns
+      `{ error?, fieldErrors? }` (zod `flattenError`, first message per field).
+- [x] **`app/admin/products/page.tsx`** — shadcn `Table` (name/price/stock/category/image
+      count) with "Add product", per-row Edit link, and delete via
+      **`components/admin/delete-product-button.tsx`** (client `Dialog` confirm).
+- [x] **`app/admin/products/new/page.tsx`** + **`app/admin/products/[id]/edit/page.tsx`**
+      (`await params`; `notFound()` on bad/missing id; both `await requireAdmin()`).
+- [x] **`components/admin/product-form.tsx`** — `"use client"`, `useActionState`; Base UI
+      `Select` (category, submits via `name`), `Textarea`, price/stock inputs, and an image
+      URL manager (add/remove, repeated hidden `images` inputs). Marked `// SWAP POINT
+    (Phase 5)` where `image-input.tsx` (file upload) will replace the URL block.
+- [x] Verified: `pnpm typecheck`, `pnpm lint`, `pnpm format:check` clean; `pnpm test`
+      (33 tests, +10 slug); `pnpm build` compiles all six admin routes as dynamic.
+      NB: end-to-end manual CRUD still needs an admin login (promote a user via `db:studio`
+      until the Phase 6 seed lands).
 
 ## Phase 4 — Category CRUD ⬜ TODO
 
