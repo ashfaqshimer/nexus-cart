@@ -94,23 +94,29 @@ server-side `requireAdmin()` gate. (Does not yet wire any UI.)
 
 ---
 
-## Phase 2 — Admin gating + shell ⬜ TODO
+## Phase 2 — Admin gating + shell ✅ DONE
 
-- [ ] **`proxy.ts`** (repo root, NOT `middleware.ts`) — optimistic check: read the
-      Better Auth session cookie (use `getSessionCookie(request)` from
-      `better-auth/cookies`, or check the `better-auth.session_token` cookie). Redirect
-      `/admin/*` → `/login` when absent; `/login` → `/admin` when present.
+- [x] **`proxy.ts`** (repo root, NOT `middleware.ts`) — optimistic check using
+      `getSessionCookie(request)` from `better-auth/cookies`. Redirects `/admin/*` →
+      `/login` when the cookie is absent; `/login` → `/admin` when present.
       `export const config = { matcher: ["/admin/:path*", "/login"] }`. Optimistic only —
       NOT the security boundary.
-- [ ] **`app/admin/layout.tsx`** — Server Component; `await requireAdmin()` first, then
-      render admin chrome (sidebar/nav: Products, Categories; a sign-out button —
-      sign-out is a small client component using `authClient.signOut()`).
-- [ ] **`app/admin/page.tsx`** — `redirect("/admin/products")`.
-- [ ] **`app/login/page.tsx`** + **`components/auth/login-form.tsx`** (`"use client"`,
-      uses `authClient.signIn.email({ email, password })`, on success `router.push("/admin")`).
-- [ ] (Optional) **`components/site-header.tsx`** — show an "Admin"/"Sign in" link based
-      on `getCurrentSession()`.
-- [ ] Verify: logged-out visit to `/admin` redirects to `/login`.
+- [x] **`app/admin/layout.tsx`** — Server Component; `await requireAdmin()` first, then
+      renders the admin chrome — a persistent **left sidebar** (NexusCart wordmark, nav
+      links to Products/Categories, and `<SignOutButton />` at the bottom) with the page
+      content in `<main>`. Sign-out is **`components/admin/sign-out-button.tsx`** (client,
+      `authClient.signOut()` → `router.push("/login")`).
+- [x] **`app/admin/page.tsx`** — `redirect("/admin/products")`.
+- [x] **`app/admin/products/page.tsx`** — placeholder ("coming soon") so the shell is
+      navigable; Phase 3 replaces it with the real product list.
+- [x] **`app/login/page.tsx`** (centered `Card`, `robots: noindex`) +
+      **`components/auth/login-form.tsx`** (`"use client"`, uses
+      `authClient.signIn.email({ email, password })`, on success `router.push("/admin")` + `router.refresh()`).
+- [x] **`components/site-header.tsx`** — shows an "Admin" link (admins) / "Sign in" link
+      (everyone else) based on `getCurrentSession()`.
+- [x] Verify: logged-out `/admin` and `/admin/products` 307-redirect to `/login` (proxy);
+      `requireAdmin()` in the layout is the real boundary. `pnpm typecheck`, `pnpm lint`,
+      and `pnpm test` (23 tests) all clean.
 
 ## Phase 3 — Product CRUD ⬜ TODO
 

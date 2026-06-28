@@ -3,11 +3,16 @@ import Link from "next/link";
 import { CartSheet } from "@/components/cart/cart-sheet";
 import { SearchBox } from "@/components/search/search-box";
 import { buttonVariants } from "@/components/ui/button";
+import { getCurrentSession } from "@/lib/auth-dal";
 import { getCategories } from "@/lib/queries/categories";
 import { cn } from "@/lib/utils";
 
 export async function SiteHeader() {
-  const categories = await getCategories();
+  const [categories, session] = await Promise.all([
+    getCategories(),
+    getCurrentSession(),
+  ]);
+  const isAdmin = session?.user.role === "admin";
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,6 +54,12 @@ export async function SiteHeader() {
             )}
           >
             Categories
+          </Link>
+          <Link
+            href={isAdmin ? "/admin" : "/login"}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+          >
+            {isAdmin ? "Admin" : "Sign in"}
           </Link>
           <CartSheet />
         </nav>
