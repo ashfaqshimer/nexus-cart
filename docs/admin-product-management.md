@@ -98,9 +98,9 @@ server-side `requireAdmin()` gate. (Does not yet wire any UI.)
 
 - [x] **`proxy.ts`** (repo root, NOT `middleware.ts`) — optimistic check using
       `getSessionCookie(request)` from `better-auth/cookies`. Redirects `/admin/*` →
-      `/login` when the cookie is absent; `/login` → `/admin` when present.
-      `export const config = { matcher: ["/admin/:path*", "/login"] }`. Optimistic only —
-      NOT the security boundary.
+      `/login` when the cookie is absent; `/login` and `/signup` → `/admin` when present.
+      `export const config = { matcher: ["/admin/:path*", "/login", "/signup"] }`.
+      Optimistic only — NOT the security boundary.
 - [x] **`app/admin/layout.tsx`** — Server Component; `await requireAdmin()` first, then
       renders the admin chrome — a persistent **left sidebar** (NexusCart wordmark, nav
       links to Products/Categories, and `<SignOutButton />` at the bottom) with the page
@@ -114,6 +114,12 @@ server-side `requireAdmin()` gate. (Does not yet wire any UI.)
       `authClient.signIn.email({ email, password })`, on success `router.push("/admin")` + `router.refresh()`).
 - [x] **`components/site-header.tsx`** — shows an "Admin" link (admins) / "Sign in" link
       (everyone else) based on `getCurrentSession()`.
+- [x] **Sign-up UI** (added beyond the original plan) — **`app/signup/page.tsx`** (noindex
+      `Card`, links to `/login`) + **`components/auth/signup-form.tsx`** (`"use client"`,
+      name/email/password, `authClient.signUp.email(...)`, redirects to `/` on success).
+      `/login` links to `/signup`. NB: new accounts are always `role: "user"` (server-side
+      `input: false`), so sign-up CANNOT create an admin — promote via `db:studio` or the
+      Phase 6 seed.
 - [x] Verify: logged-out `/admin` and `/admin/products` 307-redirect to `/login` (proxy);
       `requireAdmin()` in the layout is the real boundary. `pnpm typecheck`, `pnpm lint`,
       and `pnpm test` (23 tests) all clean.
