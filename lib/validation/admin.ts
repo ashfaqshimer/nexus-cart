@@ -73,3 +73,36 @@ export const productInput = z
 
 /** The normalized product shape the query layer persists. */
 export type ProductInput = z.infer<typeof productInput>;
+
+/**
+ * Validation for the admin category form. Like {@link productInput} but with only
+ * name/slug/description: `slug` is derived from the name when blank, and a blank
+ * `description` collapses to null.
+ */
+export const categoryInput = z
+  .object({
+    name: z.string().trim().min(1, "Name is required"),
+    slug: z.string().trim().optional(),
+    description: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const base = data.slug ? slugify(data.slug) : slugify(data.name);
+    if (!base) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Name must contain at least one letter or number",
+        path: ["name"],
+      });
+    }
+  })
+  .transform((data) => {
+    const base = data.slug ? slugify(data.slug) : "";
+    return {
+      name: data.name,
+      slug: base || slugify(data.name),
+      description: data.description ? data.description : null,
+    };
+  });
+
+/** The normalized category shape the query layer persists. */
+export type CategoryInput = z.infer<typeof categoryInput>;

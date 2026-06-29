@@ -151,20 +151,38 @@ server-side `requireAdmin()` gate. (Does not yet wire any UI.)
 - [x] **`components/admin/product-form.tsx`** — `"use client"`, `useActionState`; Base UI
       `Select` (category, submits via `name`), `Textarea`, price/stock inputs, and an image
       URL manager (add/remove, repeated hidden `images` inputs). Marked `// SWAP POINT
-    (Phase 5)` where `image-input.tsx` (file upload) will replace the URL block.
+(Phase 5)` where `image-input.tsx` (file upload) will replace the URL block.
 - [x] Verified: `pnpm typecheck`, `pnpm lint`, `pnpm format:check` clean; `pnpm test`
       (33 tests, +10 slug); `pnpm build` compiles all six admin routes as dynamic.
       NB: end-to-end manual CRUD still needs an admin login (promote a user via `db:studio`
       until the Phase 6 seed lands).
 
-## Phase 4 — Category CRUD ⬜ TODO
+## Phase 4 — Category CRUD ✅ DONE (this session)
 
-- [ ] **`lib/queries/categories.ts`** — add `createCategory`, `updateCategory`,
-      `deleteCategory`, `getAllCategoriesForAdmin`, `getCategoryById`.
-- [ ] **`app/admin/categories/actions.ts`** — same pattern; `revalidatePath("/admin/categories")` + `/categories` + `/`. Deleting a category nulls `products.categoryId` (existing
-      `on delete set null`) — surface a `dialog` confirmation in the UI.
-- [ ] **`app/admin/categories/page.tsx`**, **`.../new/page.tsx`**, **`.../[id]/edit/page.tsx`**,
-      **`components/admin/category-form.tsx`**.
+- [x] **`lib/validation/admin.ts`** — added `categoryInput` (name; optional slug→derived
+      from name via `slugify`; description→null when blank) + inferred `CategoryInput`.
+      Mirrors `productInput` minus price/stock/images.
+- [x] **`lib/queries/categories.ts`** — added `getAllCategoriesForAdmin()` (delegates to
+      `getCategories()`, includes `productCount`), `getCategoryById(id)`, `createCategory`,
+      `updateCategory`, `deleteCategory`. Slug uniqueness via the same retry loop on
+      `isUniqueViolation` (cap `MAX_SLUG_ATTEMPTS`).
+- [x] **`app/admin/categories/actions.ts`** — `"use server"`; `createCategoryAction`/
+      `updateCategoryAction(id,…)`/`deleteCategoryAction(id)`: `await requireAdmin()` first →
+      zod-validate → mutate → `revalidateCategories()` (`/admin/categories`, `/`,
+      `/categories`, `/categories/[slug]` as `'page'`) → `redirect("/admin/categories")`
+      (outside try/catch). Returns `{ error?, fieldErrors? }`.
+- [x] **`app/admin/categories/page.tsx`** — shadcn `Table` (name/slug/product count) with
+      "Add category", per-row Edit link, and delete via
+      **`components/admin/delete-category-button.tsx`** (client `Dialog` confirm that warns
+      how many products will be left uncategorized when `productCount > 0`).
+- [x] **`app/admin/categories/new/page.tsx`** + **`app/admin/categories/[id]/edit/page.tsx`**
+      (`await params`; `notFound()` on bad/missing id; both `await requireAdmin()`).
+- [x] **`components/admin/category-form.tsx`** — `"use client"`, `useActionState`; name/slug/
+      description fields (no price/stock/images/category-select). Per-field + top-level errors.
+- [x] Verified: `pnpm typecheck`, `pnpm lint`, `pnpm format:check` clean; `pnpm test`
+      (33 tests); `pnpm build` compiles the three new `/admin/categories` routes as dynamic.
+      The sidebar "Categories" link (Phase 2) already pointed here. NB: end-to-end manual
+      CRUD still needs an admin login (promote a user via `db:studio` until Phase 6 seed).
 
 ## Phase 5 — Image upload (alongside pasted URLs) ⬜ TODO
 
