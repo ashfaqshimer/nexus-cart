@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Plus, X } from "lucide-react";
 
 import type { ProductActionState } from "@/app/admin/products/actions";
+import { ImageInput } from "@/components/admin/image-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,24 +48,8 @@ export function ProductForm({
   const [categoryId, setCategoryId] = useState<string>(
     product?.categoryId != null ? String(product.categoryId) : NO_CATEGORY,
   );
-  const [images, setImages] = useState<string[]>(product?.images ?? []);
-  const [imageUrl, setImageUrl] = useState("");
 
   const fieldErrors = state.fieldErrors ?? {};
-
-  function addImage() {
-    const url = imageUrl.trim();
-    if (!url || images.includes(url)) {
-      setImageUrl("");
-      return;
-    }
-    setImages((prev) => [...prev, url]);
-    setImageUrl("");
-  }
-
-  function removeImage(url: string) {
-    setImages((prev) => prev.filter((u) => u !== url));
-  }
 
   return (
     <form action={formAction} className="flex max-w-2xl flex-col gap-6">
@@ -162,54 +146,7 @@ export function ProductForm({
         <FieldError message={fieldErrors.categoryId} />
       </div>
 
-      {/* Image manager — pasted URLs only for now. SWAP POINT (Phase 5): replace
-          this block with components/admin/image-input.tsx for file uploads. */}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="image-url">Images</Label>
-        <div className="flex gap-2">
-          <Input
-            id="image-url"
-            type="url"
-            placeholder="https://picsum.photos/600/600"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addImage();
-              }
-            }}
-          />
-          <Button type="button" variant="outline" onClick={addImage}>
-            <Plus className="size-4" />
-            Add
-          </Button>
-        </div>
-        {images.length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {images.map((url) => (
-              <li
-                key={url}
-                className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm"
-              >
-                <input type="hidden" name="images" value={url} />
-                <span className="truncate">{url}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => removeImage(url)}
-                  aria-label={`Remove ${url}`}
-                >
-                  <X className="size-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">No images added yet.</p>
-        )}
-      </div>
+      <ImageInput initialImages={product?.images ?? []} />
 
       {state.error ? (
         <p

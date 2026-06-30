@@ -184,19 +184,36 @@ server-side `requireAdmin()` gate. (Does not yet wire any UI.)
       The sidebar "Categories" link (Phase 2) already pointed here. NB: end-to-end manual
       CRUD still needs an admin login (promote a user via `db:studio` until Phase 6 seed).
 
-## Phase 5 — Image upload (alongside pasted URLs) ⬜ TODO
+## Phase 5 — Image upload (Vercel Blob, alongside pasted URLs) ✅ DONE (this session)
 
-- [ ] **`app/api/admin/upload/route.ts`** — `POST`: `await requireAdmin()`,
-      `await request.formData()`, validate file type/size, write to
-      `public/uploads/<uuid>.<ext>` via `node:fs/promises`, return `{ url: "/uploads/<file>" }`.
-      Node runtime. Mark a clear `// SWAP POINT` comment for S3/UploadThing.
-- [ ] **`components/admin/image-input.tsx`** — `"use client"`; manages a string[] of image
-      URLs: a paste-URL field with "Add", AND a file input that POSTs to the upload route
-      and appends the returned URL. Renders the list with remove buttons; serializes to
-      repeated hidden `<input name="images">` read via `formData.getAll("images")`.
-- [ ] **`.gitignore`** — ignore `public/uploads/*` (keep a `.gitkeep`).
-- [ ] Note: pasted **remote** image hosts must be added to `next.config.ts`
-      `images.remotePatterns`; local `/uploads/*` needs no entry.
+NB: storage is **Vercel Blob**, not local `public/uploads/`. The original local-FS plan
+does not work in production (this app deploys to **Vercel + Neon**; Vercel's filesystem is
+read-only/ephemeral). Blob works in both dev and prod on the free Hobby tier. The
+server-side image contract is unchanged — uploads still serialize to repeated hidden
+`<input name="images">` read via `formData.getAll("images")`, so the action/validation/
+query layers were untouched.
+
+- [x] `pnpm add @vercel/blob` (2.5.0). `.env.example` — added `BLOB_READ_WRITE_TOKEN`
+      (auto-provisioned on Vercel; `vercel env pull` for local dev).
+- [x] **`lib/upload.ts`** — pure, I/O-free `validateUploadFile(file)` + `ALLOWED_IMAGE_TYPES`
+      (jpeg/png/webp/gif/avif) + `MAX_UPLOAD_BYTES` (5 MB). Returns the HTTP status to use on
+      failure (415 type / 413 size / 400 missing). vitest in `lib/upload.test.ts` (5 cases).
+- [x] **`app/api/admin/upload/route.ts`** — `POST`; default Node runtime. **Reads the
+      session via `getCurrentSession()` and returns 401/403 JSON** (NOT `requireAdmin()`,
+      whose `redirect()` would send 307 HTML a client `fetch` can't parse). Validates via
+      `validateUploadFile`, then uploads through Vercel Blob's `put()` (public access, random
+      suffix) and returns `{ url }`. `// SWAP POINT` comment to swap Blob for S3/UploadThing.
+- [x] **`components/admin/image-input.tsx`** — `"use client"`; manages a string[] of image
+      URLs from two sources: a paste-URL field with "Add", AND a file input that POSTs to the
+      upload route and appends the returned URL (disabled "Uploading…" state + error display).
+      Renders each row as a `next/image` thumbnail (`unoptimized`, so arbitrary pasted hosts
+      preview without an allowlist entry) + URL + remove button, with the hidden
+      `<input name="images">`. Replaced the SWAP POINT block in `product-form.tsx`.
+- [x] **`next.config.ts`** — allowlisted `**.public.blob.vercel-storage.com` so the storefront
+      `next/image` can optimize Blob URLs (kept `picsum.photos`).
+- Note: pasted **remote** hosts other than the above two still aren't optimizable by the
+  storefront `next/image` (pre-existing since Phase 3) — only an allowlisted host or an
+  uploaded Blob URL renders there.
 
 ## Phase 6 — Seed admin user + full verification ⬜ TODO
 
